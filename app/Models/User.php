@@ -12,6 +12,8 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles; 
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * @property int $id
@@ -33,7 +35,7 @@ use Spatie\Permission\Traits\HasRoles;
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, LogsActivity;
 
     /**
      * Get the attributes that should be cast.
@@ -57,6 +59,19 @@ class User extends Authenticatable
     public function tickets(): HasMany
     {
         return $this->hasMany(Ticket::class, 'responsavel_id');
+    }
+
+        /**
+     * Auditoria: apenas dados de cadastro.
+     * Senha, tokens e segredos de 2FA nunca entram no log.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('usuarios')
+            ->logOnly(['name', 'email', 'observacoes'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
     }
 
     /**

@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Spatie\ModelStates\HasStates;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * @property int $id
@@ -24,7 +26,7 @@ use Spatie\ModelStates\HasStates;
 #[Fillable(['titulo', 'descricao', 'prioridade', 'responsavel_id'])]
 class Ticket extends Model
 {
-    use HasStates;
+    use HasStates, LogsActivity;
 
         /**
      * Declarado como propriedade (e não no método casts()) para que o cast de
@@ -45,5 +47,18 @@ class Ticket extends Model
     public function responsavel(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responsavel_id');
+    }
+
+     /**
+     * Auditoria: registra criação, alteração e exclusão,
+     * gravando apenas os campos de negócio que realmente mudaram.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('tickets')
+            ->logOnly(['titulo', 'descricao', 'status', 'prioridade', 'responsavel_id'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
     }
 }
