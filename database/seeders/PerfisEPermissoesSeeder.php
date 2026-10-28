@@ -32,6 +32,7 @@ class PerfisEPermissoesSeeder extends Seeder
             Permissao::AlterarPrioridadeTickets->value,
             Permissao::AlterarNomeTickets->value,
             Permissao::AlterarResponsavelTickets->value,
+            Permissao::VisualizarLogs->value,
 
         ]);
 

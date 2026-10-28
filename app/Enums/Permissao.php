@@ -13,5 +13,6 @@ enum Permissao: string
     case AlterarPrioridadeTickets = 'tickets.alterar-prioridade';
     case AlterarNomeTickets = 'tickets.alterar-nome';
     case AlterarResponsavelTickets = 'tickets.alterar-responsavel';
+    case VisualizarLogs = 'logs.visualizar';
     
 }

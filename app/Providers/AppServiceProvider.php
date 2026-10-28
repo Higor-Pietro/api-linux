@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use App\Policies\ActivityPolicy;
+use Illuminate\Support\Facades\Gate;
+use Spatie\Activitylog\Models\Activity;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->registerPolicies();
     }
 
     /**
@@ -46,5 +50,14 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+    }
+
+        /**
+     * Policies de models que não estão em App\Models
+     * (o Gate não consegue descobri-las pelo nome).
+     */
+    protected function registerPolicies(): void
+    {
+        Gate::policy(Activity::class, ActivityPolicy::class);
     }
 }
