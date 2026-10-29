@@ -38,6 +38,7 @@
             <flux:table.column>{{ __('Ação') }}</flux:table.column>
             <flux:table.column>{{ __('Registro') }}</flux:table.column>
             <flux:table.column>{{ __('Campos') }}</flux:table.column>
+            <flux:table.column></flux:table.column>
         </flux:table.columns>
 
         <flux:table.rows>
@@ -86,10 +87,17 @@
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>{{ implode(', ', $campos) }}</flux:table.cell>
+                    <flux:table.cell class="text-end">
+                        @can('view', $log)
+                            <flux:button size="sm" variant="ghost" icon="eye" :href="route('auditoria.show', $log)">
+                                {{ __('Ver') }}
+                            </flux:button>
+                        @endcan
+                    </flux:table.cell>
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="5">{{ __('Nenhum registro de auditoria.') }}</flux:table.cell>
+                    <flux:table.cell colspan="6">{{ __('Nenhum registro de auditoria.') }}</flux:table.cell>
                 </flux:table.row>
             @endforelse
         </flux:table.rows>

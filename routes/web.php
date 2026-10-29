@@ -22,4 +22,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
     Route::get('logs', [AuditoriaController::class, 'index'])->name('auditoria.index');
+
+     Route::get('logs/{activity}', [AuditoriaController::class, 'show'])->name('auditoria.show');
 });
