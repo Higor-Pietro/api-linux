@@ -27,6 +27,13 @@
                             {{ __('Usuários') }}
                         </flux:sidebar.item>
                     @endcan
+
+                    @can('viewAny', Spatie\Activitylog\Models\Activity::class)
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('auditoria.index')" :current="request()->routeIs('auditoria.*')" wire:navigate>
+                            {{ __('Logs') }}
+                        </flux:sidebar.item>
+                    @endcan
+                    
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
