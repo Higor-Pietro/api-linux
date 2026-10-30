@@ -2,6 +2,8 @@
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Enums\Perfil;
+use App\Models\User;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +46,18 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Usuário com o perfil Admin (permissões reais do seeder).
+ */
+function admin(): User
 {
-    // ..
+    return User::factory()->create()->assignRole(Perfil::Admin->value);
+}
+
+/**
+ * Usuário com o perfil Operador (permissões reais do seeder).
+ */
+function operador(): User
+{
+    return User::factory()->create()->assignRole(Perfil::Operador->value);
 }

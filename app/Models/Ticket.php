@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 use Spatie\ModelStates\HasStates;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @property int $id
@@ -26,7 +27,7 @@ use Spatie\Activitylog\Support\LogOptions;
 #[Fillable(['titulo', 'descricao', 'prioridade', 'responsavel_id'])]
 class Ticket extends Model
 {
-    use HasStates, LogsActivity;
+    use HasStates, HasFactory, LogsActivity;
 
         /**
      * Declarado como propriedade (e não no método casts()) para que o cast de
