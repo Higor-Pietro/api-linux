@@ -19,14 +19,31 @@ dataset('estados', [
 ]);
 
 /**
- * Todos os pares (de → para) entre estados diferentes: 4 × 3 = 12 transições.
+ * As transições do fluxo (espelho do TicketState::config()).
  */
-dataset('transicoes', function () {
+dataset('transicoes permitidas', [
+    'Aberto → EmAndamento' => [Aberto::class, EmAndamento::class],
+    'EmAndamento → Resolvido' => [EmAndamento::class, Resolvido::class],
+    'Resolvido → Fechado' => [Resolvido::class, Fechado::class],
+    'Fechado → EmAndamento (reabrir)' => [Fechado::class, EmAndamento::class],
+]);
+
+/**
+ * Todos os pares entre estados diferentes que NÃO estão no fluxo: 12 − 4 = 8.
+ */
+dataset('transicoes proibidas', function () {
     $estados = [Aberto::class, EmAndamento::class, Resolvido::class, Fechado::class];
+
+    $permitidas = [
+        [Aberto::class, EmAndamento::class],
+        [EmAndamento::class, Resolvido::class],
+        [Resolvido::class, Fechado::class],
+        [Fechado::class, EmAndamento::class],
+    ];
 
     foreach ($estados as $de) {
         foreach ($estados as $para) {
-            if ($de !== $para) {
+            if ($de !== $para && ! in_array([$de, $para], $permitidas, true)) {
                 yield class_basename($de).' → '.class_basename($para) => [$de, $para];
             }
         }
@@ -46,15 +63,20 @@ test('a transição é permitida e gravada no banco', function (string $de, stri
 
     expect($ticket->refresh()->status)->toBeInstanceOf($para);
     $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'status' => $para::$name]);
-})->with('transicoes');
+})->with('transicoes permitidas');
 
-test('de cada estado há 3 destinos, e nenhum é o próprio estado', function (string $estado) {
-    $ticket = Ticket::factory()->create(['status' => $estado]);
 
-    expect($ticket->status->transitionableStates())
-        ->toHaveCount(3)
-        ->not->toContain($estado::$name);
-})->with('estados');
+test('a transição fora do fluxo é recusada', function (string $de, string $para) {
+    $ticket = Ticket::factory()->create(['status' => $de]);
+
+    expect($ticket->status->canTransitionTo($para))->toBeFalse();
+
+    expect(fn () => $ticket->status->transitionTo($para))
+        ->toThrow(CouldNotPerformTransition::class);
+
+    expect($ticket->refresh()->status)->toBeInstanceOf($de);
+})->with('transicoes proibidas');
+
 
 test('a máquina recusa "transicionar" para o mesmo estado', function () {
     $ticket = Ticket::factory()->create();
@@ -93,6 +115,23 @@ test('a edição recusa um status inexistente', function () {
             'prioridade' => $ticket->prioridade->value,
             'responsavel_id' => $ticket->responsavel_id,
             'status' => 'pausado',
+        ])
+        ->assertSessionHasErrors(['status' => 'Transição de status não permitida.']);
+
+    expect($ticket->refresh()->status)->toBeInstanceOf(Aberto::class);
+});
+
+test('nem o Admin pula etapas do fluxo pela edição', function () {
+    $ticket = Ticket::factory()->create();
+
+    $this->actingAs(admin())
+        ->from(route('tickets.edit', $ticket))
+        ->put(route('tickets.update', $ticket), [
+            'titulo' => $ticket->titulo,
+            'descricao' => $ticket->descricao,
+            'prioridade' => $ticket->prioridade->value,
+            'responsavel_id' => $ticket->responsavel_id,
+            'status' => Fechado::$name,
         ])
         ->assertSessionHasErrors(['status' => 'Transição de status não permitida.']);
 
