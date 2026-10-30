@@ -14,5 +14,6 @@ enum Permissao: string
     case AlterarNomeTickets = 'tickets.alterar-nome';
     case AlterarResponsavelTickets = 'tickets.alterar-responsavel';
     case VisualizarLogs = 'logs.visualizar';
+    case VisualizarLoges = 'logs.viesualizar';
     
 }
