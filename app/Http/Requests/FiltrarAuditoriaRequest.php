@@ -30,7 +30,7 @@ class FiltrarAuditoriaRequest extends FormRequest
             'usuario_id' => ['nullable', 'integer', Rule::exists(User::class, 'id')],
             'acao' => ['nullable', Rule::enum(AcaoAuditoria::class)],
             'data_inicio' => ['nullable', 'date','before_or_equal:today'],
-            'data_fim' => ['nullable', 'date', 'after_or_equal:data_inicio', 'after_or_equal:today'],
+            'data_fim' => ['nullable', 'date', 'after_or_equal:data_inicio', 'before_or_equal:today'],
         ];
     }
 
@@ -39,8 +39,10 @@ class FiltrarAuditoriaRequest extends FormRequest
      */
     public function messages(): array
     {
-        return [
+         return [
+            'data_inicio.before_or_equal' => __('A data inicial não pode ser no futuro.'),
             'data_fim.after_or_equal' => __('A data final não pode ser anterior à data inicial.'),
+            'data_fim.before_or_equal' => __('A data final não pode ser no futuro.'),
         ];
     }
 }

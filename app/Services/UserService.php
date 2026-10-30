@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use App\Enums\AcaoAuditoria;
 use Illuminate\Validation\ValidationException;
 
 class UserService
@@ -28,6 +29,8 @@ class UserService
     /**
      * Atualiza os dados e o perfil de um usuário.
      * Senha em branco mantém a senha atual.
+     * A troca de perfil é registrada manualmente na auditoria, pois o syncRoles
+     * altera a tabela pivô (model_has_roles), que não dispara eventos do model.
      *
      * @param  array{name: string, email: string, observacoes?: string|null, password?: string|null, perfil: string}  $dados
      */
@@ -38,9 +41,23 @@ class UserService
                 unset($dados['password']);
             }
 
+            // "Foto" do perfil antes da alteração.
+            $perfilAnterior = $usuario->getRoleNames()->first();
+
             $usuario->update(Arr::except($dados, ['perfil']));
 
             $usuario->syncRoles([$dados['perfil']]);
+
+            if ($perfilAnterior !== $dados['perfil']) {
+                activity('usuarios')
+                    ->performedOn($usuario)
+                    ->event(AcaoAuditoria::Alteracao->value)
+                    ->withChanges([
+                        'old' => ['perfil' => $perfilAnterior],
+                        'attributes' => ['perfil' => $dados['perfil']],
+                    ])
+                    ->log('perfil alterado');
+            }
 
             return $usuario;
         });

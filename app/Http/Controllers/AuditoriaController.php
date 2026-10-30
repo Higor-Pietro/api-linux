@@ -8,7 +8,6 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 use Spatie\Activitylog\Models\Activity;
-use App\Enums\Perfil;
 use App\Enums\Prioridade;
 use App\Models\Ticket;
 use App\States\Ticket\TicketState;
@@ -25,6 +24,7 @@ class AuditoriaController extends Controller
         'titulo' => 'Título',
         'descricao' => 'Descrição',
         'status' => 'Status',
+        'perfil' => 'Perfil',
         'prioridade' => 'Prioridade',
         'responsavel_id' => 'Responsável',
         'name' => 'Nome',
@@ -56,7 +56,7 @@ class AuditoriaController extends Controller
         return view('auditoria.index', [
             'logs' => $logs,
             'filtros' => $filtros,
-            'usuarios' => User::role(Perfil::Admin->value)->orderBy('name')->get(['id', 'name']),
+            'usuarios' => User::query()->orderBy('name')->get(['id', 'name']),
             'acoes' => AcaoAuditoria::cases(),
         ]);
     }
