@@ -2,7 +2,7 @@
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <div class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-700">
             <flux:heading size="lg">
-                {{ __('Bem-vindo, :nome', ['nome' => auth()->user()->name]) }}
+                {{ __('Bem vindo, :nome', ['nome' => auth()->user()->name]) }}
             </flux:heading>
 
             <div class="mt-2 flex items-center gap-2">
