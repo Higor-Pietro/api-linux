@@ -1,0 +1,60 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-producao
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy em produção
+    runs-on: [self-hosted, producao]
+    timeout-minutes: 15
+    environment:
+      name: producao
+      url: http://PROGPC16:8080
+
+    defaults:
+      run:
+        working-directory: /var/www/api-linux
+
+    steps:
+      - name: Entrar em manutenção
+        run: php artisan down --retry=30
+
+      - name: Atualizar código
+        run: git pull --ff-only origin main
+
+      - name: Instalar dependências PHP (produção)
+        run: composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Rodar migrations
+        run: php artisan migrate --force
+
+      - name: Sincronizar perfis e permissões
+        run: php artisan db:seed --class=PerfisEPermissoesSeeder --force
+
+      - name: Gerar assets do front-end
+        run: |
+          npm ci
+          npm run build
+
+      - name: Otimizar aplicação
+        run: php artisan optimize
+
+      - name: Recarregar PHP-FPM
+        run: sudo -n /usr/sbin/service php8.5-fpm reload
+
+      - name: Sair da manutenção
+        if: always()
+        run: php artisan up
+
+      - name: Conferir se o site responde
+        run: curl -fsS -o /dev/null http://localhost/login
