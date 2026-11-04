@@ -10,6 +10,7 @@ use Illuminate\Validation\Rules\Password;
 use App\Policies\ActivityPolicy;
 use Illuminate\Support\Facades\Gate;
 use Spatie\Activitylog\Models\Activity;
+use Illuminate\Foundation\DevCommands;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->registerPolicies();
+        $this->configureDevCommands();
     }
 
     /**
@@ -59,5 +61,16 @@ class AppServiceProvider extends ServiceProvider
     protected function registerPolicies(): void
     {
         Gate::policy(Activity::class, ActivityPolicy::class);
+    }
+
+     /**
+     * No Windows não existe pcntl: o "composer run dev" usa o queue:listen
+     * no lugar do horizon. No servidor (Linux), quem roda o Horizon é o Supervisor.
+     */
+    protected function configureDevCommands(): void
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            DevCommands::except('horizon');
+        }
     }
 }
