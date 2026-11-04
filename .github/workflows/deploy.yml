@@ -52,6 +52,9 @@ jobs:
       - name: Recarregar PHP-FPM
         run: sudo -n /usr/sbin/service php8.5-fpm reload
 
+      - name: Reiniciar workers do Horizon
+        run: php artisan horizon:terminate
+
       - name: Sair da manutenção
         if: always()
         run: php artisan up
