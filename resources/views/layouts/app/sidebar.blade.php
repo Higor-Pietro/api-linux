@@ -33,6 +33,12 @@
                             {{ __('Logs') }}
                         </flux:sidebar.item>
                     @endcan
+
+                    @can('viewHorizon')
+                        <flux:sidebar.item icon="queue-list" :href="route('horizon.index')">
+                            {{ __('Filas (Horizon)') }}
+                        </flux:sidebar.item>
+                    @endcan
                     
                 </flux:sidebar.group>
             </flux:sidebar.nav>
