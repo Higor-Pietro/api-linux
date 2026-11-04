@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Ticket;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use App\Events\TicketCreated;
 
 class TicketService
 {
@@ -13,15 +14,16 @@ class TicketService
      *
      * @param  array{titulo: string, descricao: string, prioridade: string, responsavel_id: int}  $dados
      */
-    public function criar(array $dados): Ticket
+        public function criar(array $dados): Ticket
     {
-        return Ticket::create($dados);
+        $ticket = Ticket::create($dados);
+
+        TicketCreated::dispatch($ticket);
+
+        return $ticket;
     }
 
     /**
-     * Atualiza os campos editáveis e, se informado, muda o status pela máquina de estados.
-     * Se a transição falhar, nenhuma alteração é salva.
-     *
      * @param  array{titulo?: string, descricao: string, prioridade?: string, responsavel_id?: int, status?: string}  $dados
      */
     public function atualizar(Ticket $ticket, array $dados): Ticket
