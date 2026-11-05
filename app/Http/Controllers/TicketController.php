@@ -24,14 +24,7 @@ class TicketController extends Controller
     {
         Gate::authorize('viewAny', Ticket::class);
 
-        $tickets = Ticket::query()
-            ->with('responsavel')
-            ->latest()
-            ->paginate(15);
-
-        return view('tickets.index', [
-            'tickets' => $tickets,
-        ]);
+        return view('tickets.index');
     }
 
     /**
