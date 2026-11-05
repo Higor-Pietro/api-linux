@@ -61,3 +61,37 @@ test('usuário sem permissão não acessa a listagem', function () {
         ->test(ListaDeTickets::class)
         ->assertForbidden();
 });
+
+test('o admin confirma e exclui um ticket', function () {
+    $ticket = Ticket::factory()->create(['titulo' => 'Ticket para excluir']);
+
+    Livewire::actingAs(admin())
+        ->test(ListaDeTickets::class)
+        ->call('confirmarExclusao', $ticket->id)
+        ->assertSet('ticketParaExcluirId', $ticket->id)
+        ->call('excluir')
+        ->assertSet('ticketParaExcluirId', null);
+
+    expect(Ticket::find($ticket->id))->toBeNull();
+});
+
+test('cancelar a confirmação não exclui o ticket', function () {
+    $ticket = Ticket::factory()->create();
+
+    Livewire::actingAs(admin())
+        ->test(ListaDeTickets::class)
+        ->call('confirmarExclusao', $ticket->id);
+
+    expect(Ticket::find($ticket->id))->not->toBeNull();
+});
+
+test('o operador não pode iniciar a exclusão', function () {
+    $ticket = Ticket::factory()->create();
+
+    Livewire::actingAs(operador())
+        ->test(ListaDeTickets::class)
+        ->call('confirmarExclusao', $ticket->id)
+        ->assertForbidden();
+
+    expect(Ticket::find($ticket->id))->not->toBeNull();
+});

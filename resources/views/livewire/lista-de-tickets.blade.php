@@ -57,18 +57,14 @@
                             @endcan
 
                             @can('delete', $ticket)
-                                <form
-                                    method="POST"
-                                    action="{{ route('tickets.destroy', $ticket) }}"
-                                    onsubmit="return confirm({{ Js::from(__('Excluir o ticket :titulo? Esta ação não pode ser desfeita.', ['titulo' => $ticket->titulo])) }})"
+                                <flux:button
+                                    size="sm"
+                                    variant="danger"
+                                    icon="trash"
+                                    wire:click="confirmarExclusao({{ $ticket->id }})"
                                 >
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <flux:button size="sm" variant="danger" icon="trash" type="submit">
-                                        {{ __('Excluir') }}
-                                    </flux:button>
-                                </form>
+                                    {{ __('Excluir') }}
+                                </flux:button>
                             @endcan
                         </div>
                     </flux:table.cell>
@@ -80,6 +76,28 @@
             @endforelse
         </flux:table.rows>
     </flux:table>
+
+    <flux:modal name="confirmar-exclusao" class="max-w-lg">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Excluir ticket?') }}</flux:heading>
+
+                <flux:text class="mt-2">
+                    {{ __('O ticket ":titulo" será excluído. Esta ação não pode ser desfeita.', ['titulo' => $ticketParaExcluirTitulo]) }}
+                </flux:text>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button variant="filled">{{ __('Cancelar') }}</flux:button>
+                </flux:modal.close>
+
+                <flux:button variant="danger" wire:click="excluir">
+                    {{ __('Excluir') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 
     <div class="mt-4">
         {{ $tickets->links() }}

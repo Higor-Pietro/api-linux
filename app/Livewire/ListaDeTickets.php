@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Services\TicketService;
+use Flux\Flux;
+use Livewire\Attributes\Locked;
 
 class ListaDeTickets extends Component
 {
@@ -25,12 +28,44 @@ class ListaDeTickets extends Component
     #[Url(except: '')]
     public string $prioridade = '';
 
+    #[Locked]
+    public ?int $ticketParaExcluirId = null;
+
+    public string $ticketParaExcluirTitulo = '';
+
     /**
      * Ao mudar um filtro, volta para a primeira página.
      */
     public function updated(): void
     {
         $this->resetPage();
+    }
+
+    public function confirmarExclusao(int $id): void
+    {
+        $ticket = Ticket::findOrFail($id);
+
+        Gate::authorize('delete', $ticket);
+
+        $this->ticketParaExcluirId = $ticket->id;
+        $this->ticketParaExcluirTitulo = $ticket->titulo;
+
+        Flux::modal('confirmar-exclusao')->show();
+    }
+
+    public function excluir(TicketService $ticketService): void
+    {
+        $ticket = Ticket::findOrFail($this->ticketParaExcluirId);
+
+        Gate::authorize('delete', $ticket);
+
+        $ticketService->excluir($ticket);
+
+        $this->reset('ticketParaExcluirId', 'ticketParaExcluirTitulo');
+        $this->resetPage();
+
+        Flux::modal('confirmar-exclusao')->close();
+        Flux::toast(variant: 'success', text: __('Ticket excluído com sucesso.'));
     }
 
     public function render(): View
