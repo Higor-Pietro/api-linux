@@ -2,7 +2,7 @@
 
 use App\Enums\Prioridade;
 use App\Events\TicketCreated;
-use App\Jobs\ProcessarNotificacaoDeTicket;
+use Illuminate\Notifications\SendQueuedNotifications;
 use App\Listeners\NotificarResponsavelDoTicket;
 use App\Models\Ticket;
 use App\Models\User;
@@ -54,28 +54,33 @@ describe('evento', function () {
 });
 
 describe('job', function () {
-    test('o job vai para a fila e a notificação não é gerada durante a requisição', function () {
+   test('cada canal vai para a fila sem gerar a notificação durante a requisição', function () {
         Queue::fake();
         $responsavel = operador();
 
         criarTicketPelaTela($responsavel, 'Teclado falhando');
 
         Queue::assertPushed(
-            ProcessarNotificacaoDeTicket::class,
-            fn (ProcessarNotificacaoDeTicket $job) => $job->ticket->titulo === 'Teclado falhando',
+            SendQueuedNotifications::class,
+            fn (SendQueuedNotifications $tarefa) => $tarefa->channels === ['mail'],
+        );
+
+        Queue::assertPushed(
+            SendQueuedNotifications::class,
+            fn (SendQueuedNotifications $tarefa) => $tarefa->channels === ['database'],
         );
 
         expect($responsavel->notifications()->count())->toBe(0);
     });
 
-    test('ao ser processado, o job grava a notificação para o responsável', function () {
+    test('ao ser processada, a notificação é gravada para o responsável', function () {
         $responsavel = operador();
         $ticket = Ticket::factory()->create([
             'responsavel_id' => $responsavel->id,
             'titulo' => 'Mouse quebrado',
         ]);
 
-        (new ProcessarNotificacaoDeTicket($ticket))->handle();
+        $responsavel->notify(new NovoTicketNotification($ticket));
 
         $notificacao = $responsavel->notifications()->first();
 
@@ -95,12 +100,12 @@ describe('job', function () {
             ->and($responsavel->notifications()->first()->data['titulo'])->toBe('Rede lenta');
     });
 
-        test('o job envia o e-mail para o responsável', function () {
+    test('o listener envia o e-mail para o responsável', function () {
         Notification::fake();
         $responsavel = operador();
         $ticket = Ticket::factory()->create(['responsavel_id' => $responsavel->id]);
 
-        (new ProcessarNotificacaoDeTicket($ticket))->handle();
+        (new NotificarResponsavelDoTicket)->handle(new TicketCreated($ticket));
 
         Notification::assertSentTo(
             $responsavel,
