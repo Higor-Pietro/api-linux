@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Ticket;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\MailMessage;
 
 /**
  * Avisa o responsável de que um novo ticket foi atribuído a ele.
@@ -18,11 +19,23 @@ class NovoTicketNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['mail', 'database'];
+    }
+    
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject(__('Novo ticket: :titulo', ['titulo' => $this->ticket->titulo]))
+            ->greeting(__('Olá, :nome!', ['nome' => $notifiable->name]))
+            ->line(__('Um novo ticket foi atribuído a você.'))
+            ->line(__('Título: :titulo', ['titulo' => $this->ticket->titulo]))
+            ->line(__('Prioridade: :prioridade', ['prioridade' => $this->ticket->prioridade->value]))
+            ->action(__('Abrir ticket'), route('tickets.edit', $this->ticket))
+            ->salutation(__('Equipe de suporte'));
     }
 
     /**
-     * Conteúdo salvo na coluna "data" (JSON).
      *
      * @return array<string, mixed>
      */
