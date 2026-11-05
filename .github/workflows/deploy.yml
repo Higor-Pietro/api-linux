@@ -60,4 +60,4 @@ jobs:
         run: php artisan up
 
       - name: Conferir se o site responde
-        run: curl -kfsS -o /dev/null https://localhost/login
+        run: curl -kfsS -o /dev/null https://localhost:80/login
