@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: producao
-      url: http://PROGPC16:8080
+      url: https://PROGPC16:8080
 
     defaults:
       run:
@@ -60,4 +60,4 @@ jobs:
         run: php artisan up
 
       - name: Conferir se o site responde
-        run: curl -fsS -o /dev/null http://localhost/login
+        run: curl -kfsS -o /dev/null https://localhost/login
