@@ -5,7 +5,7 @@ namespace App\Notifications;
 use App\Models\Ticket;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
-use Exception;
+
 
 /**
  * Avisa o responsável de que um novo ticket foi atribuído a ele.
@@ -26,8 +26,6 @@ class NovoTicketNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-
-        throw new Exception("Divisão por zero não é permitida!");
 
         return (new MailMessage)
             ->subject(__('Novo ticket: :titulo', ['titulo' => $this->ticket->titulo]))
