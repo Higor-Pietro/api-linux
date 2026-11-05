@@ -5,13 +5,21 @@ namespace App\Notifications;
 use App\Models\Ticket;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-/**
- * Avisa o responsável de que um novo ticket foi atribuído a ele.
- * Gravada no banco (tabela notifications).
- */
-class NovoTicketNotification extends Notification
+
+
+class NovoTicketNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
+    public int $tries = 3;
+
+    public int $backoff = 30;
+
+    public bool $deleteWhenMissingModels = true;
+
     public function __construct(private Ticket $ticket) {}
 
     /**
@@ -21,10 +29,11 @@ class NovoTicketNotification extends Notification
     {
         return ['mail', 'database'];
     }
-    
+
 
     public function toMail(object $notifiable): MailMessage
     {
+
         return (new MailMessage)
             ->subject(__('Novo ticket: :titulo', ['titulo' => $this->ticket->titulo]))
             ->greeting(__('Olá, :nome!', ['nome' => $notifiable->name]))

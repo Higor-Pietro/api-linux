@@ -115,6 +115,8 @@
 
         {{ $slot }}
 
+        <livewire:aviso-de-ticket-no-navegador />
+
         @persist('toast')
             <flux:toast.group>
                 <flux:toast />
