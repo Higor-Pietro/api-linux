@@ -14,14 +14,13 @@ class ProcessarNotificacaoDeTicket implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Tentativas antes de ir para failed_jobs.
-     */
+    
     public int $tries = 3;
 
-    /**
-     * Se o ticket for excluído antes do processamento, descarta o job.
-     */
+    
+    public int $backoff = 30;
+
+    
     public bool $deleteWhenMissingModels = true;
 
     public function __construct(public Ticket $ticket) {}

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\NovoTicketNotification;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Cria um ticket pelo caminho real (rota + FormRequest + Service), logado como Admin.
@@ -92,5 +93,32 @@ describe('job', function () {
 
         expect($responsavel->notifications()->count())->toBe(1)
             ->and($responsavel->notifications()->first()->data['titulo'])->toBe('Rede lenta');
+    });
+
+        test('o job envia o e-mail para o responsável', function () {
+        Notification::fake();
+        $responsavel = operador();
+        $ticket = Ticket::factory()->create(['responsavel_id' => $responsavel->id]);
+
+        (new ProcessarNotificacaoDeTicket($ticket))->handle();
+
+        Notification::assertSentTo(
+            $responsavel,
+            NovoTicketNotification::class,
+            fn ($notificacao, array $canais) => in_array('mail', $canais),
+        );
+    });
+
+    test('o e-mail traz o título e o link do ticket', function () {
+        $responsavel = operador();
+        $ticket = Ticket::factory()->create([
+            'responsavel_id' => $responsavel->id,
+            'titulo' => 'Mouse quebrado',
+        ]);
+
+        $email = (new NovoTicketNotification($ticket))->toMail($responsavel);
+
+        expect($email->subject)->toContain('Mouse quebrado')
+            ->and($email->actionUrl)->toBe(route('tickets.edit', $ticket));
     });
 });
