@@ -68,6 +68,22 @@ class ListaDeTickets extends Component
         Flux::toast(variant: 'success', text: __('Ticket excluído com sucesso.'));
     }
 
+    public function alterarStatus(TicketService $ticketService, int $id, string $novoStatus): void
+    {
+        $ticket = Ticket::findOrFail($id);
+
+        Gate::authorize('alterarStatus', $ticket);
+
+        abort_unless(
+            in_array($novoStatus, $ticket->status->transitionableStates(), true),
+            422,
+        );
+
+        $ticketService->atualizar($ticket, ['status' => $novoStatus]);
+
+        Flux::toast(variant: 'success', text: __('Status atualizado com sucesso.'));
+    }
+
     public function render(): View
     {
         Gate::authorize('viewAny', Ticket::class);

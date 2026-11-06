@@ -6,6 +6,8 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\States\Ticket\EmAndamento;
 use Livewire\Livewire;
+use App\States\Ticket\Aberto;
+use App\States\Ticket\Fechado;
 
 test('lista os tickets', function () {
     Ticket::factory()->create(['titulo' => 'Mouse quebrado']);
@@ -94,4 +96,37 @@ test('o operador não pode iniciar a exclusão', function () {
         ->assertForbidden();
 
     expect(Ticket::find($ticket->id))->not->toBeNull();
+});
+
+test('o admin altera o status pela listagem', function () {
+    $ticket = Ticket::factory()->create();
+
+    Livewire::actingAs(admin())
+        ->test(ListaDeTickets::class)
+        ->call('alterarStatus', $ticket->id, EmAndamento::$name);
+
+    expect($ticket->fresh()->status)->toBeInstanceOf(EmAndamento::class);
+});
+
+test('uma transição inválida é recusada', function () {
+    $ticket = Ticket::factory()->create();
+
+    Livewire::actingAs(admin())
+        ->test(ListaDeTickets::class)
+        ->call('alterarStatus', $ticket->id, Fechado::$name)
+        ->assertStatus(422);
+
+    expect($ticket->fresh()->status)->toBeInstanceOf(Aberto::class);
+});
+
+test('o operador não altera o status pela listagem', function () {
+    $operador = operador();
+    $ticket = Ticket::factory()->create(['responsavel_id' => $operador->id]);
+
+    Livewire::actingAs($operador)
+        ->test(ListaDeTickets::class)
+        ->call('alterarStatus', $ticket->id, EmAndamento::$name)
+        ->assertForbidden();
+
+    expect($ticket->fresh()->status)->toBeInstanceOf(Aberto::class);
 });
