@@ -41,13 +41,37 @@
             @forelse ($tickets as $ticket)
                 <flux:table.row :key="$ticket->id" wire:key="ticket-{{ $ticket->id }}">
                     <flux:table.cell>{{ $ticket->titulo }}</flux:table.cell>
+
                     <flux:table.cell>
-                        <flux:badge size="sm" :color="$ticket->status->cor()">
-                            {{ $ticket->status->label() }}
-                        </flux:badge>
+                        @can('alterarStatus', $ticket)
+                            <flux:dropdown position="bottom" align="start">
+                                <flux:button size="xs" variant="ghost" icon:trailing="chevron-down">
+                                    <flux:badge size="sm" :color="$ticket->status->cor()">
+                                        {{ $ticket->status->label() }}
+                                    </flux:badge>
+                                </flux:button>
+
+                                <flux:menu>
+                                    @foreach ($ticket->status->transitionableStateInstances() as $estado)
+                                        <flux:menu.item
+                                            wire:key="status-{{ $ticket->id }}-{{ $estado->getValue() }}"
+                                            wire:click="alterarStatus({{ $ticket->id }}, '{{ $estado->getValue() }}')"
+                                        >
+                                            {{ $estado->label() }}
+                                        </flux:menu.item>
+                                    @endforeach
+                                </flux:menu>
+                            </flux:dropdown>
+                        @else
+                            <flux:badge size="sm" :color="$ticket->status->cor()">
+                                {{ $ticket->status->label() }}
+                            </flux:badge>
+                        @endcan
                     </flux:table.cell>
+
                     <flux:table.cell>{{ $ticket->prioridade->label() }}</flux:table.cell>
                     <flux:table.cell>{{ $ticket->responsavel->name }}</flux:table.cell>
+
                     <flux:table.cell class="text-end">
                         <div class="flex items-center justify-end gap-2">
                             @can('update', $ticket)
@@ -77,6 +101,10 @@
         </flux:table.rows>
     </flux:table>
 
+    <div class="mt-4">
+        {{ $tickets->links() }}
+    </div>
+
     <flux:modal name="confirmar-exclusao" class="max-w-lg">
         <div class="space-y-6">
             <div>
@@ -98,8 +126,4 @@
             </div>
         </div>
     </flux:modal>
-
-    <div class="mt-4">
-        {{ $tickets->links() }}
-    </div>
 </div>
