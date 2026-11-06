@@ -42,6 +42,7 @@
                     
                 </flux:sidebar.group>
             </flux:sidebar.nav>
+            <livewire:sino-de-notificacoes />
 
             <flux:spacer />
 
