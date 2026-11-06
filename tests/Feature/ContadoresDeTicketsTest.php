@@ -7,6 +7,7 @@ use App\States\Ticket\Aberto;
 use App\States\Ticket\EmAndamento;
 use App\States\Ticket\Resolvido;
 use Livewire\Livewire;
+use App\States\Ticket\Fechado;
 
 test('o admin vê os contadores de todos os tickets', function () {
     Ticket::factory()->count(2)->create();
@@ -20,6 +21,7 @@ test('o admin vê os contadores de todos os tickets', function () {
             Aberto::$name => 2,
             EmAndamento::$name => 1,
             Resolvido::$name => 0,
+            Fechado::$name => 0,    
         ]);
 });
 
